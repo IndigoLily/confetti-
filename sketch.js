@@ -1,23 +1,41 @@
+"use strict";
 const cnv = document.getElementById('cnv'),
         c = cnv.getContext('2d'),
-        w = cnv.width  = 512,
-        h = cnv.height = 512,
-        r = 3,
-        k = 3,
-        s = 2**0.5,
+        w = cnv.width  = innerWidth, //512,
+        h = cnv.height = innerHeight,//512,
+        r = 10,
+        k = 30,
+        s = 20,
    points = [],
      hash = [];
 
-for (let x = 0, len = Math.ceil(w/r+1); x < len; ++x) {
+c.shadowBlur = 10;
+c.shadowColor = '#000';
+
+for (let x = 0, len = Math.ceil(w/r); x < len; ++x) {
     hash[x] = [];
 
-    for (let y = 0, len = Math.ceil(h/r+1); y < len; ++y) {
+    for (let y = 0, len = Math.ceil(h/r); y < len; ++y) {
         hash[x][y] = [];
     }
 }
 
-points.push(new Point(w/2, h/2));
-c.fillRect(points[0].x, points[0].y, s, s);
+{
+    let seed = new Point(Math.random()*w, Math.random()*h);
+    let seed2 = new Point(w - seed.x, h - seed.y);
+    points.push(seed);
+    points.push(seed2);
+    hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
+    hash[Math.floor(seed2.x/r)][Math.floor(seed2.y/r)].push(seed2);
+
+    c.beginPath();
+    c.arc(seed.x, seed.y, s/2, 0, Math.PI*2);
+    c.fill();
+
+    c.beginPath();
+    c.arc(seed2.x, seed2.y, s/2, 0, Math.PI*2);
+    c.fill();
+}
 
 function Point(x, y) {
     this.x = x;
@@ -26,7 +44,7 @@ function Point(x, y) {
 }
 
 function randDist() {
-    return Math.random() * r * r + r;
+    return Math.random() * r / 2 + r;
 }
 
 function randNear(p) {
@@ -41,7 +59,9 @@ function collides(point, others) {
     }
 
     for (let i = 0; i < others.length; ++i) {
-        if (dist(point, others[i]) < r) {
+        if (others[i] == point) {
+            continue;
+        } else if (dist(point, others[i]) < r) {
             return true;
         }
     }
@@ -61,6 +81,7 @@ function draw() {
 
         for (let j = 0; it.active && j < k; ++j) {
             let test = randNear(it);
+            test.n = j;
             let valid = true;
 
             let others = [];
@@ -93,18 +114,18 @@ function draw() {
             }
         }, it);
 
-        if (collides(it, cand)) {
-            it.active = false;
-            continue;
-        } else {
-            points.push(cand);
-            hash[Math.floor(cand.x/r)][Math.floor(cand.y/r)].push(cand);
-            c.fillRect(cand.x, cand.y, s, s);
-        }
+        points.push(cand);
+        hash[Math.floor(cand.x/r)][Math.floor(cand.y/r)].push(cand);
+
+        let l = Math.floor((cand.n/(k-1))**1 * 200);
+        c.fillStyle = `rgb(${l}, ${l}, ${l})`;
+        c.beginPath();
+        c.arc(cand.x, cand.y, s/2, 0, Math.PI*2);
+        c.fill();
     }
 
     if (points.filter(p => p.active).length == 0) {
-        alert('done');
+        //alert('done');
         return;
     } else {
         requestAnimationFrame(draw);

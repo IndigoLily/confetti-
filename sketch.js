@@ -1,16 +1,45 @@
 "use strict";
 const cnv = document.getElementById('cnv'),
         c = cnv.getContext('2d'),
-        w = cnv.width  = innerWidth, //512,
-        h = cnv.height = innerHeight,//512,
-        r = 10,
-        k = 30,
-        s = 20,
+        r = 5,
+        w = cnv.width  = innerWidth  + r*2, //512,
+        h = cnv.height = innerHeight + r*2,//512,
+        k = 100,
+        s = r*2,
    points = [],
      hash = [];
 
+cnv.style.position = 'absolute';
+cnv.style.top  = -r + 'px';
+cnv.style.left = -r + 'px';
+
 c.shadowBlur = 10;
 c.shadowColor = '#000';
+
+function Point(x, y, f = 0) {
+    this.x = x;
+    this.y = y;
+    this.n = Math.random()*k;
+    this.from = f;
+    this.active = true;
+}
+
+Point.prototype.draw = function() {
+    //let l = Math.floor((this.n/(k-1))**(1/2) * 255);
+    //c.fillStyle = `rgb(${l}, ${l}, ${Math.round(10 + (l/255)**(1) * 215)})`;
+
+    if (this.from == 0) {
+        c.fillStyle = '#f48'
+    } else if (this.from == 1) {
+        c.fillStyle = '#48f';
+    } else if (this.from == 2) {
+        c.fillStyle = '#8f4';
+    }
+
+    c.beginPath();
+    c.arc(this.x, this.y, s/2, 0, Math.PI*2);
+    c.fill();
+}
 
 for (let x = 0, len = Math.ceil(w/r); x < len; ++x) {
     hash[x] = [];
@@ -21,26 +50,20 @@ for (let x = 0, len = Math.ceil(w/r); x < len; ++x) {
 }
 
 {
-    let seed = new Point(Math.random()*w, Math.random()*h);
-    let seed2 = new Point(w - seed.x, h - seed.y);
-    points.push(seed);
-    points.push(seed2);
-    hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
-    hash[Math.floor(seed2.x/r)][Math.floor(seed2.y/r)].push(seed2);
+    // let seed = new Point(Math.random()*w, Math.random()*h, 0);
+    // points.push(seed);
+    // hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
+    // seed.draw();
 
-    c.beginPath();
-    c.arc(seed.x, seed.y, s/2, 0, Math.PI*2);
-    c.fill();
-
-    c.beginPath();
-    c.arc(seed2.x, seed2.y, s/2, 0, Math.PI*2);
-    c.fill();
-}
-
-function Point(x, y) {
-    this.x = x;
-    this.y = y;
-    this.active = true;
+    for (let i = 0; i < 3; i++) {
+        let seed;
+        do {
+            seed = new Point(Math.random()*w, Math.random()*h, i)
+        } while(collides(seed, points));
+        points.push(seed);
+        hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
+        seed.draw();
+    }
 }
 
 function randDist() {
@@ -50,7 +73,7 @@ function randDist() {
 function randNear(p) {
     let a = Math.random() * Math.PI * 2;
     let d = randDist();
-    return new Point(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d);
+    return new Point(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, p.from);
 }
 
 function collides(point, others) {
@@ -117,19 +140,24 @@ function draw() {
         points.push(cand);
         hash[Math.floor(cand.x/r)][Math.floor(cand.y/r)].push(cand);
 
-        let l = Math.floor((cand.n/(k-1))**1 * 200);
-        c.fillStyle = `rgb(${l}, ${l}, ${l})`;
-        c.beginPath();
-        c.arc(cand.x, cand.y, s/2, 0, Math.PI*2);
-        c.fill();
+        cand.draw();
     }
 
+
     if (points.filter(p => p.active).length == 0) {
-        //alert('done');
-        return;
+        //setTimeout(()=>redraw(), 10000);
     } else {
         requestAnimationFrame(draw);
     }
+}
+
+function redraw(re = 0) {
+    for (let i = 0; i < 100 && re < points.length; ++i, ++re) {
+        let point = points[points.length - 1 - re];
+        point.draw();
+    }
+
+    requestAnimationFrame(()=>redraw(re+1));
 }
 
 draw();

@@ -16,10 +16,9 @@ cnv.style.left = -r + 'px';
 c.shadowBlur = 10;
 c.shadowColor = '#000';
 
-function Point(x, y, f = 0) {
+function Point(x, y, f = -1) {
     this.x = x;
     this.y = y;
-    this.n = Math.random()*k;
     this.from = f;
     this.active = true;
 }
@@ -95,7 +94,6 @@ function draw() {
 
         for (let j = 0; it.active && j < k; ++j) {
             let test = randNear(it);
-            test.n = j;
             let valid = true;
 
             let others = [];
@@ -134,20 +132,51 @@ function draw() {
     }
 
 
-    if (points.filter(p => p.active).length == 0) {
-        // setTimeout(()=>redraw(), 10000);
-    } else {
+    if (points.filter(p => p.active).length > 0) {
         requestAnimationFrame(draw);
+    } else {
+        window.addEventListener('click', _back);
     }
 }
 
-// function redraw(re = 0) {
-//     for (let i = 0; i < 100 && re < points.length; ++i, ++re) {
-//         let point = points[points.length - 1 - re];
-//         point.draw();
-//     }
-// 
-//     requestAnimationFrame(()=>redraw(re+1));
-// }
+function backwards(re = 0) {
+    for (let i = 0; i < 100 && re < points.length; ++i, ++re) {
+        let point = points[points.length - 1 - re];
+        point.draw();
+    }
+
+     if (re < points.length) {
+         requestAnimationFrame(()=>backwards(re+1));
+     } else {
+         window.addEventListener('click', _frwd);
+     }
+}
+
+function _back() {
+    window.removeEventListener('click', _back);
+    c.clearRect(0, 0, w, h);
+    backwards(0);
+}
+
+function forwards(re = 0) {
+    for (let i = 0; i < 100 && re < points.length; ++i, ++re) {
+        let point = points[re];
+        point.draw();
+    }
+
+     if (re < points.length) {
+         requestAnimationFrame(()=>forwards(re+1));
+     } else {
+         window.addEventListener('click', _back);
+     }
+}
+
+function _frwd() {
+    window.removeEventListener('click', _frwd);
+    c.clearRect(0, 0, w, h);
+    forwards(0);
+}
+
+
 
 draw();

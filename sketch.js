@@ -2,8 +2,8 @@
 const cnv = document.getElementById('cnv'),
         c = cnv.getContext('2d'),
         r = 5,
-        w = cnv.width  = innerWidth  + r*2, //512,
-        h = cnv.height = innerHeight + r*2,//512,
+        w = cnv.width  = innerWidth  + r*2,
+        h = cnv.height = innerHeight + r*2,
         k = 100,
         s = r*2,
    points = [],
@@ -25,15 +25,14 @@ function Point(x, y, f = 0) {
 }
 
 Point.prototype.draw = function() {
-    //let l = Math.floor((this.n/(k-1))**(1/2) * 255);
-    //c.fillStyle = `rgb(${l}, ${l}, ${Math.round(10 + (l/255)**(1) * 215)})`;
-
     if (this.from == 0) {
         c.fillStyle = '#f48'
     } else if (this.from == 1) {
         c.fillStyle = '#48f';
     } else if (this.from == 2) {
         c.fillStyle = '#8f4';
+    } else if (this.from == 3) {
+        c.fillStyle = '#fd4';
     }
 
     c.beginPath();
@@ -49,25 +48,17 @@ for (let x = 0, len = Math.ceil(w/r); x < len; ++x) {
     }
 }
 
-{
-    // let seed = new Point(Math.random()*w, Math.random()*h, 0);
-    // points.push(seed);
-    // hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
-    // seed.draw();
-
-    for (let i = 0; i < 3; i++) {
-        let seed;
-        do {
-            seed = new Point(Math.random()*w, Math.random()*h, i)
-        } while(collides(seed, points));
-        points.push(seed);
-        hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
-        seed.draw();
-    }
+for (let i = 0, seed; i < 3; i++) {
+    do {
+        seed = new Point(Math.random()*w, Math.random()*h, i)
+    } while(collides(seed, points));
+    points.push(seed);
+    hash[Math.floor(seed.x/r)][Math.floor(seed.y/r)].push(seed);
+    seed.draw();
 }
 
 function randDist() {
-    return Math.random() * r / 2 + r;
+    return Math.random() * r + r;
 }
 
 function randNear(p) {
@@ -128,7 +119,6 @@ function draw() {
             continue;
         }
 
-        // get furthest valid candidate
         let cand = cands.reduce((max, next) => {
             if (dist(it, next) > dist(it, max)) {
                 return next;
@@ -145,19 +135,19 @@ function draw() {
 
 
     if (points.filter(p => p.active).length == 0) {
-        //setTimeout(()=>redraw(), 10000);
+        // setTimeout(()=>redraw(), 10000);
     } else {
         requestAnimationFrame(draw);
     }
 }
 
-function redraw(re = 0) {
-    for (let i = 0; i < 100 && re < points.length; ++i, ++re) {
-        let point = points[points.length - 1 - re];
-        point.draw();
-    }
-
-    requestAnimationFrame(()=>redraw(re+1));
-}
+// function redraw(re = 0) {
+//     for (let i = 0; i < 100 && re < points.length; ++i, ++re) {
+//         let point = points[points.length - 1 - re];
+//         point.draw();
+//     }
+// 
+//     requestAnimationFrame(()=>redraw(re+1));
+// }
 
 draw();

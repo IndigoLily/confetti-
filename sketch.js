@@ -57,7 +57,7 @@ for (let i = 0, seed; i < 3; i++) {
 }
 
 function randDist() {
-    return Math.random() * r + r;
+    return Math.random() * r * 1.5 + r;
 }
 
 function randNear(p) {
